@@ -1,0 +1,25 @@
+name: Deploy to OnPrem K8s
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Push Images
+        run: |
+          docker build -t registry.local/elevator-api:latest ./server
+          docker build -t registry.local/elevator-web:latest ./web
+          echo ${{ secrets.REGISTRY_PASSWORD }} | docker login registry.local -u ${{ secrets.REGISTRY_USER }} --password-stdin
+          docker push registry.local/elevator-api:latest
+          docker push registry.local/elevator-web:latest
+      - name: Apply to K8s
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.K8S_MASTER_IP }}
+          username: ${{ secrets.K8S_USER }}
+          key: ${{ secrets.K8S_SSH_KEY }}
+          script: |
+            kubectl apply -f /opt/k8s/elevator-map/k8s/

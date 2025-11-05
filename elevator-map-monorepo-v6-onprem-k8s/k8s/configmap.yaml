@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elevator-config
+  namespace: elevator-map
+data:
+  ELEVATOR_API_KEY: "<YOUR_API_KEY>"
